@@ -5,7 +5,7 @@ const request = require('supertest');
 
 process.env.FAMILY_CODE = 'jingle';
 const db = require('../db');
-const { app, cleanUrl } = require('../app');
+const { app, cleanUrl, linkify } = require('../app');
 
 async function login(name, pin = '1234') {
   const agent = request.agent(app);
@@ -25,7 +25,7 @@ before(async () => {
   alice = await login('Alice');
   bob = await login('Bob');
   cara = await login('Cara');
-  listId = (await db.query('SELECT id FROM lists WHERE owner_id = $1', [alice.id])).rows[0].id;
+  listId = (await db.query("SELECT id FROM lists WHERE owner_id = $1 AND kind = 'gifts'", [alice.id])).rows[0].id;
 });
 after(() => db.pool.end());
 
@@ -100,4 +100,44 @@ test('unsafe links are rejected and HTML is escaped', async () => {
 
 test('logged-out visitors are sent to login', async () => {
   await request(app).get('/').expect(302).expect('Location', '/login');
+});
+
+test('new people start with a gift list and an interests list', async () => {
+  const { rows } = await db.query('SELECT kind FROM lists WHERE owner_id = $1 ORDER BY id', [bob.id]);
+  assert.deepStrictEqual(rows.map((r) => r.kind), ['gifts', 'interests']);
+});
+
+test('interests lists: free-form note, secret comments, no items', async () => {
+  await alice.agent.post('/lists').type('form').send({ kind: 'interests', title: 'Exploring…' }).expect(302);
+  const { rows } = await db.query("SELECT * FROM lists WHERE owner_id = $1 AND title = 'Exploring…'", [alice.id]);
+  const id = rows[0].id;
+  assert.strictEqual(rows[0].kind, 'interests');
+
+  await alice.agent.post(`/lists/${id}/body`).type('form')
+    .send({ body: 'Pottery\nBirding, see https://example.com/binoculars' }).expect(302);
+  await alice.agent.post(`/lists/${id}/items`).type('form').send({ title: 'nope' }).expect(400);
+  await bob.agent.post(`/lists/${id}/body`).type('form').send({ body: 'hacked' }).expect(403);
+
+  await bob.agent.post(`/lists/${id}/comments`).type('form').send({ body: 'POTTERY-CLASS-PLAN' }).expect(302);
+  await alice.agent.post(`/lists/${id}/comments`).type('form').send({ body: 'x' }).expect(403);
+
+  const caraView = await cara.agent.get(`/u/${alice.id}`);
+  assert.match(caraView.text, /Pottery/);
+  assert.match(caraView.text, /<a href="https:\/\/example.com\/binoculars"/);
+  assert.match(caraView.text, /POTTERY-CLASS-PLAN/);
+  const aliceView = await alice.agent.get(`/u/${alice.id}`);
+  assert.match(aliceView.text, /Pottery/);
+  assert.doesNotMatch(aliceView.text, /POTTERY-CLASS-PLAN/);
+
+  // Bob can delete his own list comment.
+  const c = (await db.query('SELECT id FROM comments WHERE list_id = $1', [id])).rows[0];
+  await cara.agent.post(`/comments/${c.id}/delete`).type('form').expect(403);
+  await bob.agent.post(`/comments/${c.id}/delete`).type('form').expect(302);
+});
+
+test('linkify escapes HTML and only links http(s)', () => {
+  assert.strictEqual(linkify('<b>hi</b>'), '&lt;b&gt;hi&lt;/b&gt;');
+  assert.doesNotMatch(linkify('javascript:alert(1)'), /<a/);
+  assert.match(linkify('see https://a.com/x?y=1&z=2.'), /href="https:\/\/a.com\/x\?y=1&amp;z=2" target/);
+  assert.doesNotMatch(linkify('https://a.com/"onmouseover="x'), /"onmouseover/);
 });

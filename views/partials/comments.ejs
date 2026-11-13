@@ -1,0 +1,22 @@
+<details class="comments">
+  <summary>💬 <%= comments.length ? comments.length + (comments.length === 1 ? ' comment' : ' comments') : 'Comment' %></summary>
+  <% if (comments.length) { %>
+    <ul class="comment-list">
+      <% comments.forEach(c => { %>
+        <li>
+          <strong><%= c.author_id === me.id ? 'You' : c.author_name %>:</strong>
+          <span><%- linkify(c.body) %></span>
+          <% if (c.author_id === me.id) { %>
+            <form method="post" action="/comments/<%= c.id %>/delete" class="inline" data-confirm="Delete your comment?">
+              <button class="link-btn danger small" aria-label="Delete comment">✕</button>
+            </form>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+  <form method="post" action="<%= action %>" class="row">
+    <input name="body" maxlength="1000" placeholder="<%= placeholder %>" aria-label="Comment" required>
+    <button class="btn">Post</button>
+  </form>
+</details>

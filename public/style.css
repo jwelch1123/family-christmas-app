@@ -200,3 +200,30 @@ details > summary::-webkit-details-marker { display: none; }
 .add-item[open] > summary { margin-bottom: 12px; }
 .add-list > summary { font-weight: 700; color: var(--red); text-align: center; padding: 4px; }
 .add-list[open] > summary { margin-bottom: 12px; }
+
+/* interests lists */
+.kind-icon { margin-right: 6px; }
+.freeform {
+  margin: 12px 0 4px; white-space: pre-wrap; overflow-wrap: anywhere;
+  font-size: 1.02rem; line-height: 1.55;
+}
+.list.interests { border-left: 4px solid var(--green); }
+.list.interests .comments { margin-top: 8px; }
+
+/* new list form */
+.kind-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kind-pick label { position: relative; font-weight: 400; }
+.kind-pick input { position: absolute; inset: 0; opacity: 0; margin: 0; }
+.kind-pick span {
+  display: grid; gap: 4px; height: 100%;
+  padding: 12px; border: 2px solid var(--line); border-radius: 12px; cursor: pointer;
+}
+.kind-pick small { color: var(--muted); font-size: .85rem; line-height: 1.3; }
+.kind-pick input:checked + span { border-color: var(--red); background: var(--red-soft); }
+.kind-pick input:focus-visible + span { outline: 2px solid var(--red); }
+.suggestions { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  appearance: none; font: inherit; font-size: .9rem; cursor: pointer;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--ink);
+}

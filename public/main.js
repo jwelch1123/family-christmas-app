@@ -46,3 +46,19 @@ document.addEventListener('click', (e) => {
   btn.setAttribute('aria-expanded', String(!panel.hidden));
   if (!panel.hidden) panel.querySelector('input')?.focus();
 });
+
+// New list form: switch suggestions with the list type, and tap a chip to use it as the name.
+const newList = document.getElementById('new-list');
+if (newList) {
+  const title = newList.querySelector('[name=title]');
+  const placeholders = { gifts: 'e.g. Books, Big-ticket, Stocking stuffers', interests: "e.g. I'm interested in…" };
+  newList.addEventListener('change', (e) => {
+    if (e.target.name !== 'kind') return;
+    newList.querySelectorAll('.suggestions').forEach((el) => (el.hidden = el.dataset.for !== e.target.value));
+    title.placeholder = placeholders[e.target.value];
+  });
+  newList.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (chip) title.value = chip.dataset.title;
+  });
+}

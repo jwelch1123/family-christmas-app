@@ -55,9 +55,29 @@ function hostOf(url) {
   }
 }
 
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
+// Escape text, then turn any http(s) links in it into clickable links.
+function linkify(text) {
+  const urlRe = /\bhttps?:\/\/[^\s<>"']+[^\s<>"'.,;:!?)\]]/gi;
+  const str = String(text || '');
+  let out = '';
+  let last = 0;
+  for (const m of str.matchAll(urlRe)) {
+    out += escapeHtml(str.slice(last, m.index));
+    const url = escapeHtml(m[0]);
+    out += `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    last = m.index + m[0].length;
+  }
+  return out + escapeHtml(str.slice(last));
+}
+
 app.use((req, res, next) => {
   res.locals.me = null;
   res.locals.hostOf = hostOf;
+  res.locals.linkify = linkify;
   res.locals.flash = req.session.flash || null;
   if (req.session) req.session.flash = null;
   next();
@@ -200,8 +220,23 @@ app.get('/u/:id', requireLogin, wrap(async (req, res) => {
       comments.get(row.item_id).push(row);
     }
   }
+  // Comments on interests lists (also never loaded for the owner).
+  const listComments = new Map();
+  if (!isOwner && lists.length) {
+    const { rows: lc } = await db.query(
+      `SELECT c.*, u.name AS author_name
+         FROM comments c JOIN users u ON u.id = c.author_id
+        WHERE c.list_id = ANY($1) ORDER BY c.created_at`,
+      [lists.map((l) => l.id)]
+    );
+    for (const row of lc) {
+      if (!listComments.has(row.list_id)) listComments.set(row.list_id, []);
+      listComments.get(row.list_id).push(row);
+    }
+  }
 
   for (const list of lists) {
+    list.comments = listComments.get(list.id) || [];
     list.items = items
       .filter((i) => i.list_id === list.id)
       .map((i) => ({ ...i, claim: claims.get(i.id) || null, comments: comments.get(i.id) || [] }));
@@ -221,8 +256,12 @@ async function ownList(req, res) {
 }
 
 app.post('/lists', requireLogin, wrap(async (req, res) => {
-  const title = clean(req.body.title, 80) || 'New List';
-  const { rows } = await db.query('INSERT INTO lists (owner_id, title) VALUES ($1, $2) RETURNING id', [req.me.id, title]);
+  const kind = req.body.kind === 'interests' ? 'interests' : 'gifts';
+  const title = clean(req.body.title, 80) || (kind === 'interests' ? "I'm interested in…" : 'New List');
+  const { rows } = await db.query(
+    'INSERT INTO lists (owner_id, title, kind) VALUES ($1, $2, $3) RETURNING id',
+    [req.me.id, title, kind]
+  );
   res.redirect(`/u/${req.me.id}#list-${rows[0].id}`);
 }));
 
@@ -232,6 +271,23 @@ app.post('/lists/:id/rename', requireLogin, wrap(async (req, res) => {
   const title = clean(req.body.title, 80);
   if (title) await db.query('UPDATE lists SET title = $1 WHERE id = $2', [title, list.id]);
   res.redirect(`/u/${req.me.id}#list-${list.id}`);
+}));
+
+app.post('/lists/:id/body', requireLogin, wrap(async (req, res) => {
+  const list = await ownList(req, res);
+  if (!list) return;
+  await db.query('UPDATE lists SET body = $1 WHERE id = $2', [clean(req.body.body, 5000) || null, list.id]);
+  res.redirect(`/u/${req.me.id}#list-${list.id}`);
+}));
+
+app.post('/lists/:id/comments', requireLogin, wrap(async (req, res) => {
+  const { rows } = await db.query('SELECT * FROM lists WHERE id = $1', [req.params.id]);
+  const list = rows[0];
+  if (!list) return notFound(res);
+  if (list.owner_id === req.me.id) return res.status(403).render('error', { message: 'No peeking at your own gifts!' });
+  const body = clean(req.body.body, 1000);
+  if (body) await db.query('INSERT INTO comments (list_id, author_id, body) VALUES ($1, $2, $3)', [list.id, req.me.id, body]);
+  res.redirect(`/u/${list.owner_id}#list-${list.id}`);
 }));
 
 app.post('/lists/:id/delete', requireLogin, wrap(async (req, res) => {
@@ -246,6 +302,7 @@ app.post('/lists/:id/delete', requireLogin, wrap(async (req, res) => {
 app.post('/lists/:id/items', requireLogin, wrap(async (req, res) => {
   const list = await ownList(req, res);
   if (!list) return;
+  if (list.kind !== 'gifts') return res.status(400).render('error', { message: 'That list is a free-form note.' });
   const title = clean(req.body.title, 200);
   const url = cleanUrl(req.body.url);
   if (!title && !url) return res.redirect(`/u/${req.me.id}#list-${list.id}`);
@@ -326,15 +383,17 @@ app.post('/items/:id/comments', requireLogin, wrap(async (req, res) => {
 
 app.post('/comments/:id/delete', requireLogin, wrap(async (req, res) => {
   const { rows } = await db.query(
-    `SELECT c.*, l.owner_id FROM comments c JOIN items i ON i.id = c.item_id
-       JOIN lists l ON l.id = i.list_id WHERE c.id = $1`,
+    `SELECT c.*, l.owner_id FROM comments c
+       LEFT JOIN items i ON i.id = c.item_id
+       JOIN lists l ON l.id = COALESCE(c.list_id, i.list_id)
+      WHERE c.id = $1`,
     [req.params.id]
   );
   const c = rows[0];
   if (!c) return notFound(res);
   if (c.author_id !== req.me.id) return res.status(403).render('error', { message: 'You can only delete your own comments.' });
   await db.query('DELETE FROM comments WHERE id = $1', [c.id]);
-  res.redirect(`/u/${c.owner_id}#item-${c.item_id}`);
+  res.redirect(`/u/${c.owner_id}#` + (c.item_id ? `item-${c.item_id}` : `list-${c.list_id}`));
 }));
 
 // ---------- errors ----------
@@ -345,4 +404,4 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { message: 'Something went wrong. Try again?' });
 });
 
-module.exports = { app, cleanUrl };
+module.exports = { app, cleanUrl, linkify };

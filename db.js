@@ -51,9 +51,18 @@ CREATE TABLE IF NOT EXISTS comments (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Two kinds of list: 'gifts' (items with links that can be claimed) and
+-- 'interests' (one free-form note, e.g. "Exploring...", that others can comment on).
+ALTER TABLE lists ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'gifts';
+ALTER TABLE lists ADD COLUMN IF NOT EXISTS body TEXT;
+-- Comments belong to either an item or an interests list.
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS list_id INTEGER REFERENCES lists(id) ON DELETE CASCADE;
+ALTER TABLE comments ALTER COLUMN item_id DROP NOT NULL;
+
 CREATE INDEX IF NOT EXISTS lists_owner_idx   ON lists(owner_id);
 CREATE INDEX IF NOT EXISTS items_list_idx    ON items(list_id);
 CREATE INDEX IF NOT EXISTS comments_item_idx ON comments(item_id);
+CREATE INDEX IF NOT EXISTS comments_list_idx ON comments(list_id);
 `;
 
 async function init(memberNames) {
@@ -66,7 +75,10 @@ async function init(memberNames) {
     );
     // Give every new person a starter list so their page isn't empty.
     if (rows[0]) {
-      await pool.query(`INSERT INTO lists (owner_id, title) VALUES ($1, 'My Wish List')`, [rows[0].id]);
+      await pool.query(
+        `INSERT INTO lists (owner_id, title, kind) VALUES ($1, 'My Wish List', 'gifts'), ($1, 'I''m interested in…', 'interests')`,
+        [rows[0].id]
+      );
     }
   }
 }

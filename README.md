@@ -2,8 +2,10 @@
 
 Christmas wish lists for the family, built for phones.
 
-- Each person gets a page with as many lists as they want, and they can rename them.
-- Each item can have a title, a link and notes. ★ marks the ones you really want.
+- Each person gets a page with as many lists as they want, and they can rename them. There are two kinds:
+  - **🎁 Gift lists:** specific items, each with a title, a link and notes. ★ marks the ones you really want. Others can claim them.
+  - **💭 Interests:** a free-form note like "I'm interested in…" or "Exploring…". Links in it become clickable. Others can comment on it but there's nothing to claim.
+- Everyone starts with one of each: "My Wish List" and "I'm interested in…".
 - Everyone else can **claim** an item ("I'll get this") and leave **comments** like "want to split it?".
 - **The list owner never sees claims or comments.** The server never sends that data to them.
 - "Gifts I'm getting" on the home page lists everything you've claimed.

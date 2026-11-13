@@ -15,9 +15,9 @@
 <% } %>
 
 <% lists.forEach(list => { %>
-  <section class="card list" id="list-<%= list.id %>">
+  <section class="card list <%= list.kind %>" id="list-<%= list.id %>">
     <div class="list-head">
-      <h2><%= list.title %></h2>
+      <h2><% if (list.kind === 'interests') { %><span class="kind-icon" aria-hidden="true">💭</span><% } %><%= list.title %></h2>
       <% if (isOwner) { %>
         <button type="button" class="icon-btn" data-toggle="list-menu-<%= list.id %>" aria-label="List options" aria-expanded="false">⋯</button>
       <% } %>
@@ -34,6 +34,24 @@
           </div>
     <% } %>
 
+    <% if (list.kind === 'interests') { %>
+      <% if (list.body) { %>
+        <div class="freeform"><%- linkify(list.body) %></div>
+      <% } else { %>
+        <p class="muted empty"><%= isOwner ? 'Jot down hobbies, things you\'re exploring, stores you love — anything that gives people ideas.' : 'Nothing here yet.' %></p>
+      <% } %>
+      <% if (isOwner) { %>
+        <details class="add-item" <%= list.body ? '' : 'open' %>>
+          <summary class="btn wide"><%= list.body ? '✎ Edit' : '✎ Write something' %></summary>
+          <form method="post" action="/lists/<%= list.id %>/body" class="stack">
+            <textarea name="body" rows="6" maxlength="5000" aria-label="<%= list.title %>" placeholder="Sourdough baking&#10;Trail running — need a better headlamp&#10;Anything from https://example.com"><%= list.body || '' %></textarea>
+            <button class="btn primary">Save</button>
+          </form>
+        </details>
+      <% } else { %>
+        <%- include('partials/comments', { comments: list.comments, action: `/lists/${list.id}/comments`, placeholder: 'e.g. I\'m getting a class for this — anyone want in?' }) %>
+      <% } %>
+    <% } else { %>
     <% if (!list.items.length) { %>
       <p class="muted empty"><%= isOwner ? 'Nothing here yet — add your first idea below.' : 'Nothing on this list yet.' %></p>
     <% } %>
@@ -54,7 +72,7 @@
             <% if (item.url) { %>
               <a class="host" href="<%= item.url %>" target="_blank" rel="noopener noreferrer">🔗 <%= hostOf(item.url) %></a>
             <% } %>
-            <% if (item.notes) { %><p class="notes"><%= item.notes %></p><% } %>
+            <% if (item.notes) { %><p class="notes"><%- linkify(item.notes) %></p><% } %>
           </div>
 
           <% if (isOwner) { %>
@@ -91,28 +109,7 @@
               <% } %>
             </div>
 
-            <details class="comments">
-              <summary>💬 <%= item.comments.length ? item.comments.length + (item.comments.length === 1 ? ' comment' : ' comments') : 'Comment' %></summary>
-              <% if (item.comments.length) { %>
-                <ul class="comment-list">
-                  <% item.comments.forEach(c => { %>
-                    <li>
-                      <strong><%= c.author_id === me.id ? 'You' : c.author_name %>:</strong>
-                      <span><%= c.body %></span>
-                      <% if (c.author_id === me.id) { %>
-                        <form method="post" action="/comments/<%= c.id %>/delete" class="inline" data-confirm="Delete your comment?">
-                          <button class="link-btn danger small" aria-label="Delete comment">✕</button>
-                        </form>
-                      <% } %>
-                    </li>
-                  <% }) %>
-                </ul>
-              <% } %>
-              <form method="post" action="/items/<%= item.id %>/comments" class="row">
-                <input name="body" maxlength="1000" placeholder="e.g. Want to go in on this together?" aria-label="Comment" required>
-                <button class="btn">Post</button>
-              </form>
-            </details>
+            <%- include('partials/comments', { comments: item.comments, action: `/items/${item.id}/comments`, placeholder: 'e.g. Want to go in on this together?' }) %>
           <% } %>
         </li>
       <% }) %>
@@ -129,15 +126,38 @@
         </form>
       </details>
     <% } %>
+    <% } %>
   </section>
 <% }) %>
 
 <% if (isOwner) { %>
   <details class="card add-list">
     <summary>＋ New list</summary>
-    <form method="post" action="/lists" class="row">
-      <input name="title" maxlength="80" placeholder="e.g. Books, Big-ticket, Stocking stuffers" aria-label="List name" required>
-      <button class="btn primary">Create</button>
+    <form method="post" action="/lists" class="stack" id="new-list">
+      <div class="kind-pick">
+        <label>
+          <input type="radio" name="kind" value="gifts" checked>
+          <span><strong>🎁 Gift list</strong><small>Specific things with links. Others can claim them.</small></span>
+        </label>
+        <label>
+          <input type="radio" name="kind" value="interests">
+          <span><strong>💭 Interests</strong><small>Free-form notes on what you're into or exploring.</small></span>
+        </label>
+      </div>
+      <label>Name
+        <input name="title" maxlength="80" placeholder="e.g. Books, Big-ticket, Stocking stuffers">
+      </label>
+      <div class="suggestions" data-for="interests" hidden>
+        <% ["I'm interested in…", 'Exploring…', 'Into lately…', 'Always happy to get…'].forEach(t => { %>
+          <button type="button" class="chip" data-title="<%= t %>"><%= t %></button>
+        <% }) %>
+      </div>
+      <div class="suggestions" data-for="gifts">
+        <% ['Books', 'Stocking stuffers', 'Big-ticket', 'Clothes'].forEach(t => { %>
+          <button type="button" class="chip" data-title="<%= t %>"><%= t %></button>
+        <% }) %>
+      </div>
+      <button class="btn primary">Create list</button>
     </form>
   </details>
 <% } %>
