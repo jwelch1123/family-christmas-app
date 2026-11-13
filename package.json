@@ -1,0 +1,32 @@
+{
+  "name": "family-christmas-app",
+  "version": "1.0.0",
+  "description": "Family Christmas gift lists",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jwelch1123/family-christmas-app.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jwelch1123/family-christmas-app/issues"
+  },
+  "homepage": "https://github.com/jwelch1123/family-christmas-app#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-session": "^2.1.1",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.2"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

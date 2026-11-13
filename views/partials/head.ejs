@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#9b1c1c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Gifts">
+  <title><%= typeof title !== 'undefined' ? title + ' · ' : '' %>Family Gifts</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="stylesheet" href="/style.css?v=2">
+  <script src="/main.js?v=2" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">🎄 Family Gifts</a>
+    <% if (me) { %>
+      <form method="post" action="/logout"><button class="link-btn">Log out</button></form>
+    <% } %>
+  </header>
+  <main>
+  <% if (flash) { %><div class="flash"><%= flash %></div><% } %>

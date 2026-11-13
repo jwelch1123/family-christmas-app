@@ -1,0 +1,145 @@
+<%- include('partials/head', { title: person.name }) %>
+
+<div class="page-head">
+  <a class="back" href="/">‹ Everyone</a>
+  <h1><%= isOwner ? 'My lists' : person.name + "'s lists" %></h1>
+  <% if (isOwner) { %>
+    <p class="muted small">Add ideas below. Claims and comments from others are hidden from you, so the surprise is safe. 🤫</p>
+  <% } else { %>
+    <p class="muted small">Claims and comments are hidden from <%= person.name %>.</p>
+  <% } %>
+</div>
+
+<% if (!lists.length) { %>
+  <div class="card center muted"><%= isOwner ? "You don't have any lists yet." : person.name + " hasn't made a list yet." %></div>
+<% } %>
+
+<% lists.forEach(list => { %>
+  <section class="card list" id="list-<%= list.id %>">
+    <div class="list-head">
+      <h2><%= list.title %></h2>
+      <% if (isOwner) { %>
+        <button type="button" class="icon-btn" data-toggle="list-menu-<%= list.id %>" aria-label="List options" aria-expanded="false">⋯</button>
+      <% } %>
+    </div>
+    <% if (isOwner) { %>
+          <div class="menu-body" id="list-menu-<%= list.id %>" hidden>
+            <form method="post" action="/lists/<%= list.id %>/rename" class="row">
+              <input name="title" value="<%= list.title %>" maxlength="80" aria-label="List name" required>
+              <button class="btn">Rename</button>
+            </form>
+            <form method="post" action="/lists/<%= list.id %>/delete" data-confirm="Delete “<%= list.title %>” and everything on it?">
+              <button class="btn danger wide">Delete list</button>
+            </form>
+          </div>
+    <% } %>
+
+    <% if (!list.items.length) { %>
+      <p class="muted empty"><%= isOwner ? 'Nothing here yet — add your first idea below.' : 'Nothing on this list yet.' %></p>
+    <% } %>
+
+    <ul class="items">
+      <% list.items.forEach(item => {
+           const claimedByMe = item.claim && item.claim.claimer_id === me.id; %>
+        <li class="item <%= item.claim ? (claimedByMe ? 'claimed mine' : 'claimed') : '' %>" id="item-<%= item.id %>">
+          <div class="item-main">
+            <div class="item-title">
+              <% if (item.starred) { %><span class="star" title="Really wants this">★</span><% } %>
+              <% if (item.url) { %>
+                <a href="<%= item.url %>" target="_blank" rel="noopener noreferrer"><%= item.title %></a>
+              <% } else { %>
+                <span><%= item.title %></span>
+              <% } %>
+            </div>
+            <% if (item.url) { %>
+              <a class="host" href="<%= item.url %>" target="_blank" rel="noopener noreferrer">🔗 <%= hostOf(item.url) %></a>
+            <% } %>
+            <% if (item.notes) { %><p class="notes"><%= item.notes %></p><% } %>
+          </div>
+
+          <% if (isOwner) { %>
+            <div class="item-actions">
+              <form method="post" action="/items/<%= item.id %>/star">
+                <button class="icon-btn <%= item.starred ? 'on' : '' %>" aria-label="<%= item.starred ? 'Unstar' : 'Star as a favorite' %>"><%= item.starred ? '★' : '☆' %></button>
+              </form>
+              <button type="button" class="icon-btn" data-toggle="edit-<%= item.id %>" aria-label="Edit item" aria-expanded="false">✎</button>
+            </div>
+                <div class="menu-body" id="edit-<%= item.id %>" hidden>
+                  <form method="post" action="/items/<%= item.id %>/edit" class="stack">
+                    <label>What <input name="title" value="<%= item.title %>" maxlength="200"></label>
+                    <label>Link <input name="url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" value="<%= item.url || '' %>" placeholder="https://…"></label>
+                    <label>Notes <textarea name="notes" rows="2" maxlength="1000" placeholder="Size, color, etc."><%= item.notes || '' %></textarea></label>
+                    <button class="btn primary">Save</button>
+                  </form>
+                  <form method="post" action="/items/<%= item.id %>/delete" data-confirm="Remove “<%= item.title %>”?">
+                    <button class="btn danger wide">Remove</button>
+                  </form>
+                </div>
+          <% } else { %>
+            <div class="claim-row">
+              <% if (!item.claim) { %>
+                <form method="post" action="/items/<%= item.id %>/claim">
+                  <button class="btn primary small">🎁 I'll get this</button>
+                </form>
+              <% } else if (claimedByMe) { %>
+                <span class="pill mine">✓ You're getting this</span>
+                <form method="post" action="/items/<%= item.id %>/unclaim" data-confirm="Release this so someone else can claim it?">
+                  <button class="link-btn danger">Release</button>
+                </form>
+              <% } else { %>
+                <span class="pill">✓ Claimed by <%= item.claim.claimer_name %></span>
+              <% } %>
+            </div>
+
+            <details class="comments">
+              <summary>💬 <%= item.comments.length ? item.comments.length + (item.comments.length === 1 ? ' comment' : ' comments') : 'Comment' %></summary>
+              <% if (item.comments.length) { %>
+                <ul class="comment-list">
+                  <% item.comments.forEach(c => { %>
+                    <li>
+                      <strong><%= c.author_id === me.id ? 'You' : c.author_name %>:</strong>
+                      <span><%= c.body %></span>
+                      <% if (c.author_id === me.id) { %>
+                        <form method="post" action="/comments/<%= c.id %>/delete" class="inline" data-confirm="Delete your comment?">
+                          <button class="link-btn danger small" aria-label="Delete comment">✕</button>
+                        </form>
+                      <% } %>
+                    </li>
+                  <% }) %>
+                </ul>
+              <% } %>
+              <form method="post" action="/items/<%= item.id %>/comments" class="row">
+                <input name="body" maxlength="1000" placeholder="e.g. Want to go in on this together?" aria-label="Comment" required>
+                <button class="btn">Post</button>
+              </form>
+            </details>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+
+    <% if (isOwner) { %>
+      <details class="add-item" <%= list.items.length ? '' : 'open' %>>
+        <summary class="btn wide">＋ Add an idea</summary>
+        <form method="post" action="/lists/<%= list.id %>/items" class="stack">
+          <label>What <input name="title" maxlength="200" placeholder="Cozy socks"></label>
+          <label>Link <span class="muted">(optional)</span> <input name="url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" placeholder="Paste a link"></label>
+          <label>Notes <span class="muted">(optional)</span> <textarea name="notes" rows="2" maxlength="1000" placeholder="Size, color, etc."></textarea></label>
+          <button class="btn primary">Add to list</button>
+        </form>
+      </details>
+    <% } %>
+  </section>
+<% }) %>
+
+<% if (isOwner) { %>
+  <details class="card add-list">
+    <summary>＋ New list</summary>
+    <form method="post" action="/lists" class="row">
+      <input name="title" maxlength="80" placeholder="e.g. Books, Big-ticket, Stocking stuffers" aria-label="List name" required>
+      <button class="btn primary">Create</button>
+    </form>
+  </details>
+<% } %>
+
+<%- include('partials/foot') %>

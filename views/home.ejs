@@ -1,0 +1,38 @@
+<%- include('partials/head') %>
+<h1 class="hello">Hi <%= me.name %> 👋</h1>
+
+<div class="people">
+  <% people.forEach(p => { %>
+    <a class="person-card <%= p.id === me.id ? 'mine' : '' %>" href="/u/<%= p.id %>">
+      <span class="avatar"><%= p.name.slice(0, 1).toUpperCase() %></span>
+      <span class="person-info">
+        <strong><%= p.id === me.id ? 'My lists' : p.name %></strong>
+        <small>
+          <%= p.item_count %> <%= p.item_count === 1 ? 'idea' : 'ideas' %><% if (p.claimed_count !== null) { %> · <%= p.claimed_count %> claimed<% } %>
+        </small>
+      </span>
+      <span class="chev">›</span>
+    </a>
+  <% }) %>
+</div>
+
+<h2>🎁 Gifts I'm getting</h2>
+<% if (!myClaims.length) { %>
+  <p class="muted">Nothing yet. Tap someone above and claim something from their list.</p>
+<% } else { %>
+  <ul class="claims card">
+    <% myClaims.forEach(c => { %>
+      <li>
+        <div>
+          <a href="/u/<%= c.owner_id %>#item-<%= c.id %>"><%= c.title %></a>
+          <small class="muted">for <%= c.owner_name %></small>
+        </div>
+        <form method="post" action="/items/<%= c.id %>/unclaim" data-confirm="Release this gift so someone else can claim it?">
+          <input type="hidden" name="from" value="home">
+          <button class="link-btn danger">Release</button>
+        </form>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+<%- include('partials/foot') %>
