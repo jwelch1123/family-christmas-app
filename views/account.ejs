@@ -1,0 +1,25 @@
+<%- include('partials/head', { title: 'Account' }) %>
+<div class="page-head">
+  <a class="back" href="/">‹ Home</a>
+  <h1>My account</h1>
+  <p class="muted small"><%= me.email %></p>
+</div>
+<% if (error) { %><p class="error"><%= error %></p><% } %>
+<section class="card">
+  <h2 class="tight">Name</h2>
+  <form method="post" action="/account/name" class="row">
+    <input name="name" value="<%= me.name %>" maxlength="40" aria-label="Your name" required>
+    <button class="btn">Save</button>
+  </form>
+</section>
+<section class="card">
+  <h2 class="tight">Change PIN</h2>
+  <form method="post" action="/account/pin" class="stack">
+    <label>Current PIN <input name="current_pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" required></label>
+    <label>New PIN <input name="pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" required></label>
+    <label>New PIN again <input name="pin_confirm" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" required></label>
+    <button class="btn">Change PIN</button>
+  </form>
+</section>
+<form method="post" action="/logout"><button class="btn wide">Log out</button></form>
+<%- include('partials/foot') %>

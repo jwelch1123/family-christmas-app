@@ -1,0 +1,42 @@
+<%- include('partials/head', { title: 'Admin' }) %>
+<div class="page-head">
+  <a class="back" href="/">‹ Home</a>
+  <h1>Site admin</h1>
+  <p class="muted small">Approve who can create groups and be group admins, and make PIN reset links.</p>
+</div>
+
+<% if (resetLink) { %>
+  <section class="card highlight">
+    <h2 class="tight">Reset link for <%= resetLink.name %></h2>
+    <p class="muted small">Send this to <%= resetLink.name %>. It works once, for 7 days.</p>
+    <input class="invite-url" value="<%= resetLink.url %>" readonly aria-label="Reset link">
+    <button type="button" class="btn primary" data-share="<%= resetLink.url %>" data-share-title="Reset your Family Gifts PIN">Share link</button>
+  </section>
+<% } %>
+
+<section class="card">
+  <ul class="members admin-users">
+    <% users.forEach(u => { %>
+      <li>
+        <div>
+          <strong><%= u.name %></strong>
+          <% if (u.is_site_admin) { %><span class="pill tiny">site admin</span><% } else if (u.can_create_groups) { %><span class="pill tiny mine">approved</span><% } %>
+          <% if (u.locked) { %><span class="pill tiny">locked out</span><% } %>
+          <small class="muted block"><%= u.email %></small>
+          <small class="muted block"><%= u.group_names || 'No groups' %></small>
+        </div>
+        <div class="member-actions">
+          <% if (!u.is_site_admin) { %>
+            <form method="post" action="/admin/users/<%= u.id %>/whitelist">
+              <button class="link-btn"><%= u.can_create_groups ? 'Unapprove' : 'Approve' %></button>
+            </form>
+          <% } %>
+          <form method="post" action="/admin/users/<%= u.id %>/reset" data-confirm="Make a PIN reset link for <%= u.name %>?">
+            <button class="link-btn">Reset PIN</button>
+          </form>
+        </div>
+      </li>
+    <% }) %>
+  </ul>
+</section>
+<%- include('partials/foot') %>

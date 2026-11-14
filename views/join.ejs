@@ -1,0 +1,37 @@
+<%- include('partials/head', { title: 'Join ' + group.name }) %>
+<div class="card login">
+  <p class="big center">🎁</p>
+  <h1 class="center">Join <%= group.name %></h1>
+  <p class="muted center small"><%= memberCount %> <%= memberCount === 1 ? 'person' : 'people' %> in this group</p>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+
+  <% if (!loggedIn) { %>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab <%= tab === 'new' ? 'on' : '' %>" data-tab="new">I'm new</button>
+      <button type="button" class="tab <%= tab === 'existing' ? 'on' : '' %>" data-tab="existing">I have an account</button>
+    </div>
+    <form method="post" action="/join/<%= group.invite_token %>/signup" class="stack" data-panel="new" <%= tab === 'new' ? '' : 'hidden' %>>
+      <%- include('partials/signup-fields', { form }) %>
+      <button class="btn primary wide">Create account</button>
+    </form>
+    <form method="post" action="/join/<%= group.invite_token %>/login" class="stack" data-panel="existing" <%= tab === 'existing' ? '' : 'hidden' %>>
+      <label>Email <input name="email" type="email" value="<%= form.email || '' %>" autocomplete="username" autocapitalize="off" required></label>
+      <label>PIN <input name="pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" required></label>
+      <button class="btn primary wide">Log in</button>
+    </form>
+  <% } else { %>
+    <form method="post" action="/join/<%= group.invite_token %>" class="stack">
+      <% if (lists.length) { %>
+        <p><strong>Which of your lists should <%= group.name %> see?</strong></p>
+        <div class="checks">
+          <% lists.forEach(l => { %>
+            <label class="check"><input type="checkbox" name="list_ids" value="<%= l.id %>" checked> <%= l.kind === 'interests' ? '💭' : '🎁' %> <%= l.title %></label>
+          <% }) %>
+        </div>
+        <p class="muted small">You can change this for each list later.</p>
+      <% } %>
+      <button class="btn primary wide">Join <%= group.name %></button>
+    </form>
+  <% } %>
+</div>
+<%- include('partials/foot') %>

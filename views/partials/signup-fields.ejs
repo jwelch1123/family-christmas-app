@@ -1,0 +1,4 @@
+<label>Your name <input name="name" value="<%= form.name || '' %>" maxlength="40" autocomplete="given-name" placeholder="What your family calls you" required></label>
+<label>Email <input name="email" type="email" value="<%= form.email || '' %>" autocomplete="username" autocapitalize="off" required></label>
+<label>Choose a PIN <span class="muted">(4–8 digits)</span> <input name="pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" required></label>
+<label>PIN again <input name="pin_confirm" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" required></label>

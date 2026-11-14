@@ -62,3 +62,36 @@ if (newList) {
     if (chip) title.value = chip.dataset.title;
   });
 }
+
+// Invite page: switch between "I'm new" and "I have an account".
+document.querySelectorAll('.tabs .tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tabs .tab').forEach((t) => t.classList.toggle('on', t === tab));
+    document.querySelectorAll('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== tab.dataset.tab));
+  });
+});
+
+// Share buttons: use the phone's share sheet, or copy the link.
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-share]');
+  if (!btn) return;
+  const url = btn.dataset.share;
+  if (navigator.share) {
+    try { await navigator.share({ title: btn.dataset.shareTitle, url }); } catch {}
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    const label = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => (btn.textContent = label), 1500);
+  } catch {
+    btn.closest('section')?.querySelector('.invite-url')?.select();
+  }
+});
+
+// Open the group we were sent back to.
+if (location.hash.startsWith('#group-')) {
+  const g = document.querySelector(location.hash);
+  if (g && g.tagName === 'DETAILS') g.open = true;
+}

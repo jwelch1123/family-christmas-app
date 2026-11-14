@@ -1,17 +1,17 @@
 <%- include('partials/head', { title: person.name }) %>
 
 <div class="page-head">
-  <a class="back" href="/">‹ Everyone</a>
+  <a class="back" href="/">‹ Home</a>
   <h1><%= isOwner ? 'My lists' : person.name + "'s lists" %></h1>
   <% if (isOwner) { %>
     <p class="muted small">Add ideas below. Claims and comments from others are hidden from you, so the surprise is safe. 🤫</p>
   <% } else { %>
-    <p class="muted small">Claims and comments are hidden from <%= person.name %>.</p>
+    <p class="muted small">Claims and comments are hidden from <%= person.name %>. You only see comments from people in your groups.</p>
   <% } %>
 </div>
 
 <% if (!lists.length) { %>
-  <div class="card center muted"><%= isOwner ? "You don't have any lists yet." : person.name + " hasn't made a list yet." %></div>
+  <div class="card center muted"><%= isOwner ? "You don't have any lists yet." : person.name + " hasn't shared any lists with your groups yet." %></div>
 <% } %>
 
 <% lists.forEach(list => { %>
@@ -22,8 +22,23 @@
         <button type="button" class="icon-btn" data-toggle="list-menu-<%= list.id %>" aria-label="List options" aria-expanded="false">⋯</button>
       <% } %>
     </div>
-    <% if (isOwner) { %>
+    <% if (isOwner) {
+         const shared = groups.filter(g => list.sharedWith.has(g.id)); %>
+      <p class="shared-with small <%= shared.length ? '' : 'private' %>">
+        <%= shared.length ? '👥 ' + shared.map(g => g.name).join(', ') : '🔒 Only you can see this list' %>
+      </p>
           <div class="menu-body" id="list-menu-<%= list.id %>" hidden>
+            <% if (groups.length) { %>
+              <form method="post" action="/lists/<%= list.id %>/share" class="stack">
+                <strong class="small">Who can see this list?</strong>
+                <div class="checks">
+                  <% groups.forEach(g => { %>
+                    <label class="check"><input type="checkbox" name="group_ids" value="<%= g.id %>" <%= list.sharedWith.has(g.id) ? 'checked' : '' %>> <%= g.name %></label>
+                  <% }) %>
+                </div>
+                <button class="btn">Save sharing</button>
+              </form>
+            <% } %>
             <form method="post" action="/lists/<%= list.id %>/rename" class="row">
               <input name="title" value="<%= list.title %>" maxlength="80" aria-label="List name" required>
               <button class="btn">Rename</button>
@@ -58,7 +73,7 @@
 
     <ul class="items">
       <% list.items.forEach(item => {
-           const claimedByMe = item.claim && item.claim.claimer_id === me.id; %>
+           const claimedByMe = item.claim && item.claim.label === 'me'; %>
         <li class="item <%= item.claim ? (claimedByMe ? 'claimed mine' : 'claimed') : '' %>" id="item-<%= item.id %>">
           <div class="item-main">
             <div class="item-title">
@@ -105,7 +120,7 @@
                   <button class="link-btn danger">Release</button>
                 </form>
               <% } else { %>
-                <span class="pill">✓ Claimed by <%= item.claim.claimer_name %></span>
+                <span class="pill">✓ <%= item.claim.label ? 'Claimed by ' + item.claim.label : 'Held by someone outside your groups' %></span>
               <% } %>
             </div>
 

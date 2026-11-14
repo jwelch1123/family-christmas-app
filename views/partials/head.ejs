@@ -12,14 +12,17 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/style.css?v=3">
-  <script src="/main.js?v=3" defer></script>
+  <link rel="stylesheet" href="/style.css?v=4">
+  <script src="/main.js?v=4" defer></script>
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/">🎄 Family Gifts</a>
     <% if (me) { %>
-      <form method="post" action="/logout"><button class="link-btn">Log out</button></form>
+      <nav class="topnav">
+        <% if (me.is_site_admin) { %><a href="/admin">Admin</a><% } %>
+        <a href="/account" aria-label="My account"><%= me.name %></a>
+      </nav>
     <% } %>
   </header>
   <main>

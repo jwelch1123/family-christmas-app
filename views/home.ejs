@@ -1,38 +1,80 @@
 <%- include('partials/head') %>
 <h1 class="hello">Hi <%= me.name %> 👋</h1>
 
-<div class="people">
-  <% people.forEach(p => { %>
-    <a class="person-card <%= p.id === me.id ? 'mine' : '' %>" href="/u/<%= p.id %>">
-      <span class="avatar"><%= p.name.slice(0, 1).toUpperCase() %></span>
-      <span class="person-info">
-        <strong><%= p.id === me.id ? 'My lists' : p.name %></strong>
-        <small>
-          <%= p.item_count %> <%= p.item_count === 1 ? 'idea' : 'ideas' %><% if (p.claimed_count !== null) { %> · <%= p.claimed_count %> claimed<% } %>
-        </small>
-      </span>
-      <span class="chev">›</span>
-    </a>
-  <% }) %>
-</div>
+<h2 class="section-title">Me</h2>
+<a class="person-card mine" href="/u/<%= me.id %>">
+  <span class="avatar"><%= me.name.slice(0, 1).toUpperCase() %></span>
+  <span class="person-info">
+    <strong>My lists</strong>
+    <small><%= mine.list_count %> <%= mine.list_count === 1 ? 'list' : 'lists' %> · <%= mine.item_count %> <%= mine.item_count === 1 ? 'idea' : 'ideas' %></small>
+  </span>
+  <span class="chev">›</span>
+</a>
 
-<h2>🎁 Gifts I'm getting</h2>
-<% if (!myClaims.length) { %>
-  <p class="muted">Nothing yet. Tap someone above and claim something from their list.</p>
-<% } else { %>
-  <ul class="claims card">
-    <% myClaims.forEach(c => { %>
-      <li>
-        <div>
-          <a href="/u/<%= c.owner_id %>#item-<%= c.id %>"><%= c.title %></a>
-          <small class="muted">for <%= c.owner_name %></small>
-        </div>
-        <form method="post" action="/items/<%= c.id %>/unclaim" data-confirm="Release this gift so someone else can claim it?">
-          <input type="hidden" name="from" value="home">
-          <button class="link-btn danger">Release</button>
-        </form>
-      </li>
-    <% }) %>
-  </ul>
+<details class="card claims-box" <%= myClaims.length ? 'open' : '' %>>
+  <summary><strong>🎁 Gifts I'm getting</strong> <span class="count"><%= myClaims.length %></span></summary>
+  <% if (!myClaims.length) { %>
+    <p class="muted small">Nothing yet. Open someone's lists and tap “I'll get this”.</p>
+  <% } else { %>
+    <ul class="claims">
+      <% myClaims.forEach(c => { %>
+        <li>
+          <div>
+            <a href="/u/<%= c.owner_id %>#item-<%= c.id %>"><%= c.title %></a>
+            <small class="muted">for <%= c.owner_name %></small>
+          </div>
+          <form method="post" action="/items/<%= c.id %>/unclaim" data-confirm="Release this gift so someone else can claim it?">
+            <input type="hidden" name="from" value="home">
+            <button class="link-btn danger">Release</button>
+          </form>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</details>
+
+<h2 class="section-title">Groups</h2>
+<% if (!groups.length) { %>
+  <div class="card muted">You're not in any groups yet. Ask someone for an invite link<%= me.can_create_groups ? ', or create a group below' : '' %>.</div>
+<% } %>
+
+<% groups.forEach(g => { %>
+  <details class="card group" id="group-<%= g.id %>" <%= groups.length === 1 ? 'open' : '' %>>
+    <summary>
+      <span class="group-name"><%= g.name %></span>
+      <span class="muted small"><%= g.members.length + 1 %> people</span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="group-body">
+      <% if (!g.members.length) { %>
+        <p class="muted small">Just you so far.<%= g.is_admin ? ' Share the invite link to add people.' : '' %></p>
+      <% } %>
+      <% g.members.forEach(p => { %>
+        <a class="person-row" href="/u/<%= p.id %>">
+          <span class="avatar small"><%= p.name.slice(0, 1).toUpperCase() %></span>
+          <span class="person-info">
+            <strong><%= p.name %></strong>
+            <small>
+              <% if (!p.list_count) { %>No lists shared yet<% } else { %>
+                <%= p.item_count %> <%= p.item_count === 1 ? 'idea' : 'ideas' %> · <%= p.claimed_count %> claimed
+              <% } %>
+            </small>
+          </span>
+          <span class="chev">›</span>
+        </a>
+      <% }) %>
+      <a class="group-link" href="/g/<%= g.id %>"><%= g.is_admin ? '⚙︎ Manage group & invite link' : 'Group info' %></a>
+    </div>
+  </details>
+<% }) %>
+
+<% if (me.can_create_groups) { %>
+  <details class="card add-list">
+    <summary>＋ New group</summary>
+    <form method="post" action="/groups" class="row">
+      <input name="name" maxlength="60" placeholder="e.g. Welch Family" aria-label="Group name" required>
+      <button class="btn primary">Create</button>
+    </form>
+  </details>
 <% } %>
 <%- include('partials/foot') %>

@@ -109,9 +109,11 @@ label input, label textarea { margin-top: 4px; font-weight: 400; }
 form.inline { display: inline; }
 
 .flash, .error {
-  background: var(--red-soft); color: var(--red);
+  background: var(--green-soft); color: var(--green);
   padding: 10px 14px; border-radius: 10px; font-weight: 600;
 }
+.error { background: var(--red-soft); color: var(--red); }
+.flash { margin-bottom: 8px; }
 .hint { color: var(--muted); font-size: .95rem; margin: 0 0 8px; }
 
 /* login */
@@ -227,3 +229,49 @@ details > summary::-webkit-details-marker { display: none; }
   padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
   background: var(--bg); color: var(--ink);
 }
+
+/* top nav */
+.topnav { display: flex; gap: 14px; }
+.topnav a { color: #fff; font-weight: 600; text-decoration: none; opacity: .95; max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+h2.tight { margin: 0 0 10px; }
+.section-title { font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 24px 0 8px; }
+.block { display: block; }
+
+/* home */
+.claims-box > summary { display: flex; justify-content: space-between; align-items: center; }
+.claims-box .claims { padding: 0; margin: 8px 0 0; }
+.claims-box[open] > summary { margin-bottom: 4px; }
+.count { background: var(--line); color: var(--muted); border-radius: 999px; padding: 1px 9px; font-size: .85rem; font-weight: 700; }
+.group > summary { display: flex; align-items: center; gap: 10px; }
+.group-name { flex: 1; font-weight: 700; font-size: 1.1rem; }
+
+.group[open] > summary .chev { transform: rotate(90deg); }
+.group-body { margin-top: 10px; }
+.person-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  border-top: 1px solid var(--line); color: var(--ink); text-decoration: none;
+}
+.avatar.small { width: 36px; height: 36px; font-size: 1rem; }
+.group-link { display: block; padding-top: 12px; border-top: 1px solid var(--line); font-weight: 600; text-decoration: none; font-size: .95rem; }
+
+/* join / tabs */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg); padding: 4px; border-radius: 12px; margin: 12px 0 16px; }
+.tab { appearance: none; border: 0; background: none; font: inherit; font-weight: 600; padding: 10px; border-radius: 9px; color: var(--muted); cursor: pointer; }
+.tab.on { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.checks { display: grid; gap: 4px; }
+.check { display: flex; align-items: center; gap: 10px; font-weight: 400; padding: 8px 0; }
+.check input { width: 22px; height: 22px; margin: 0; accent-color: var(--red); flex: none; }
+
+/* groups & admin */
+.invite-url { font-size: 14px; margin-bottom: 10px; color: var(--muted); }
+.members { list-style: none; padding: 0; margin: 0; }
+.members li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.members li:first-child { border-top: 0; }
+.member-actions { display: flex; gap: 4px; }
+.pill.tiny { font-size: .75rem; padding: 2px 8px; margin-left: 4px; vertical-align: middle; }
+.highlight { border-color: var(--green); }
+
+/* owner list sharing */
+.shared-with { margin: 4px 0 0; color: var(--muted); }
+.shared-with.private { color: var(--gold); }

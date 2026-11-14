@@ -1,0 +1,11 @@
+<%- include('partials/head', { title: 'New PIN' }) %>
+<div class="card login">
+  <h1>New PIN for <%= user.name %></h1>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" class="stack">
+    <label>New PIN <span class="muted">(4–8 digits)</span> <input name="pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" required></label>
+    <label>PIN again <input name="pin_confirm" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" required></label>
+    <button class="btn primary wide">Save PIN</button>
+  </form>
+</div>
+<%- include('partials/foot') %>

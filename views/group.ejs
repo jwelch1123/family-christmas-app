@@ -1,0 +1,70 @@
+<%- include('partials/head', { title: group.name }) %>
+<div class="page-head">
+  <a class="back" href="/#group-<%= group.id %>">‹ Home</a>
+  <h1><%= group.name %></h1>
+</div>
+
+<% if (isAdmin) { %>
+  <section class="card">
+    <h2 class="tight">Invite people</h2>
+    <p class="muted small">Anyone with this link can join <%= group.name %>, so only send it to people you want in.</p>
+    <input class="invite-url" value="<%= inviteUrl %>" readonly aria-label="Invite link">
+    <div class="row">
+      <button type="button" class="btn primary" data-share="<%= inviteUrl %>" data-share-title="Join <%= group.name %> on Family Gifts">Share link</button>
+      <form method="post" action="/g/<%= group.id %>/invite/reset" data-confirm="Make a new link? The old one will stop working.">
+        <button class="btn">New link</button>
+      </form>
+    </div>
+  </section>
+<% } %>
+
+<section class="card">
+  <h2 class="tight">People</h2>
+  <ul class="members">
+    <% members.forEach(m => { %>
+      <li>
+        <span>
+          <%= m.name %><%= m.id === me.id ? ' (you)' : '' %>
+          <% if (m.is_admin) { %><span class="pill tiny">admin</span><% } %>
+        </span>
+        <% if (isAdmin && m.id !== me.id) { %>
+          <span class="member-actions">
+            <% if (m.is_admin || m.can_create_groups) { %>
+              <form method="post" action="/g/<%= group.id %>/members/<%= m.id %>/admin">
+                <button class="link-btn"><%= m.is_admin ? 'Remove admin' : 'Make admin' %></button>
+              </form>
+            <% } %>
+            <form method="post" action="/g/<%= group.id %>/members/<%= m.id %>/remove" data-confirm="Remove <%= m.name %> from <%= group.name %>?">
+              <button class="link-btn danger">Remove</button>
+            </form>
+          </span>
+        <% } %>
+      </li>
+    <% }) %>
+  </ul>
+  <% if (isAdmin) { %>
+    <p class="muted small">Only people the site admin has approved can be made admins.</p>
+  <% } %>
+</section>
+
+<% if (isAdmin) { %>
+  <section class="card">
+    <h2 class="tight">Group name</h2>
+    <form method="post" action="/g/<%= group.id %>/rename" class="row">
+      <input name="name" value="<%= group.name %>" maxlength="60" aria-label="Group name" required>
+      <button class="btn">Rename</button>
+    </form>
+  </section>
+<% } %>
+
+<div class="stack">
+  <form method="post" action="/g/<%= group.id %>/leave" data-confirm="Leave <%= group.name %>? Your lists will stop being shared with it.">
+    <button class="btn wide">Leave group</button>
+  </form>
+  <% if (isAdmin) { %>
+    <form method="post" action="/g/<%= group.id %>/delete" data-confirm="Delete <%= group.name %> for everyone? Lists aren't deleted, just no longer shared here.">
+      <button class="btn danger wide">Delete group</button>
+    </form>
+  <% } %>
+</div>
+<%- include('partials/foot') %>

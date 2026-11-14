@@ -1,0 +1,16 @@
+<%- include('partials/head', { title: 'Set up' }) %>
+<div class="card login">
+  <h1>Set up Family Gifts</h1>
+  <% if (!configured) { %>
+    <p class="error">Set a <code>SETUP_CODE</code> config var on Heroku, then reload this page.</p>
+  <% } else { %>
+    <p class="muted">This first account will be the site admin. After this, people join with invite links.</p>
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+    <form method="post" action="/setup" class="stack">
+      <label>Setup code <input name="setup_code" autocomplete="off" autocapitalize="off" required></label>
+      <%- include('partials/signup-fields', { form }) %>
+      <button class="btn primary wide">Create my account</button>
+    </form>
+  <% } %>
+</div>
+<%- include('partials/foot') %>

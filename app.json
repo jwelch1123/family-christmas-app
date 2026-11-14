@@ -1,11 +1,18 @@
 {
   "name": "Family Gifts",
-  "description": "Christmas wish lists for the family, with secret claims and comments.",
-  "addons": ["heroku-postgresql:essential-0"],
+  "description": "Christmas wish lists for families and groups, with secret claims and comments.",
+  "addons": [
+    "heroku-postgresql:essential-0"
+  ],
   "env": {
-    "FAMILY_MEMBERS": { "description": "Comma-separated names, e.g. Mom,Dad,Alex,Sam,Jordan,Taylor" },
-    "FAMILY_CODE": { "description": "Code everyone needs the first time they log in (to set their PIN)." },
-    "SESSION_SECRET": { "generator": "secret" },
-    "NODE_ENV": { "value": "production" }
+    "SETUP_CODE": {
+      "description": "A one-time code you'll type to create the first (site admin) account. Pick anything."
+    },
+    "SESSION_SECRET": {
+      "generator": "secret"
+    },
+    "NODE_ENV": {
+      "value": "production"
+    }
   }
 }
