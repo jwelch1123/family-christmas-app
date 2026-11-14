@@ -53,11 +53,11 @@
       <% if (list.body) { %>
         <div class="freeform"><%- linkify(list.body) %></div>
       <% } else { %>
-        <p class="muted empty"><%= isOwner ? 'Jot down hobbies, things you\'re exploring, stores you love — anything that gives people ideas.' : 'Nothing here yet.' %></p>
+        <p class="muted empty"><%= isOwner ? 'General ideas: hobbies, things you\'re exploring, stores you love.' : 'Nothing here yet.' %></p>
       <% } %>
       <% if (isOwner) { %>
-        <details class="add-item" <%= list.body ? '' : 'open' %>>
-          <summary class="btn wide"><%= list.body ? '✎ Edit' : '✎ Write something' %></summary>
+        <details class="add-item">
+          <summary class="btn wide"><%= list.body ? '✎ Edit' : '✎ Add general ideas' %></summary>
           <form method="post" action="/lists/<%= list.id %>/body" class="stack">
             <textarea name="body" rows="6" maxlength="5000" aria-label="<%= list.title %>" placeholder="Sourdough baking&#10;Trail running — need a better headlamp&#10;Anything from https://example.com"><%= list.body || '' %></textarea>
             <button class="btn primary">Save</button>
@@ -68,7 +68,7 @@
       <% } %>
     <% } else { %>
     <% if (!list.items.length) { %>
-      <p class="muted empty"><%= isOwner ? 'Nothing here yet — add your first idea below.' : 'Nothing on this list yet.' %></p>
+      <p class="muted empty"><%= isOwner ? 'Specific items: things with a link that people can claim.' : 'Nothing on this list yet.' %></p>
     <% } %>
 
     <ul class="items">
@@ -115,7 +115,7 @@
                   <button class="btn primary small">🎁 I'll get this</button>
                 </form>
               <% } else if (claimedByMe) { %>
-                <span class="pill mine">✓ You're getting this</span>
+                <span class="pill mine">✓ You're giving this</span>
                 <form method="post" action="/items/<%= item.id %>/unclaim" data-confirm="Release this so someone else can claim it?">
                   <button class="link-btn danger">Release</button>
                 </form>
@@ -131,8 +131,8 @@
     </ul>
 
     <% if (isOwner) { %>
-      <details class="add-item" <%= list.items.length ? '' : 'open' %>>
-        <summary class="btn wide">＋ Add an idea</summary>
+      <details class="add-item">
+        <summary class="btn wide">＋ Add specific items</summary>
         <form method="post" action="/lists/<%= list.id %>/items" class="stack">
           <label>What <input name="title" maxlength="200" placeholder="Cozy socks"></label>
           <label>Link <span class="muted">(optional)</span> <input name="url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" placeholder="Paste a link"></label>

@@ -125,7 +125,7 @@ test('claims: names inside your groups, anonymous outside, hidden from owner', a
   const linda = (await agents.Linda.get(`/u/${ids.Sam}`)).text;
   assert.match(linda, /Held by someone outside your groups/);
   assert.doesNotMatch(linda, /Mom/);
-  assert.match((await agents.Mom.get(`/u/${ids.Sam}`)).text, /You're getting this/);
+  assert.match((await agents.Mom.get(`/u/${ids.Sam}`)).text, /You're giving this/);
   assert.doesNotMatch((await agents.Sam.get(`/u/${ids.Sam}`)).text, /Claimed|Held by|getting this/);
   // Double claim blocked; owner can't claim.
   await form(agents.Linda, `/items/${item}/claim`).expect(302);

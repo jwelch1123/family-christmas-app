@@ -9,7 +9,7 @@ Christmas wish lists for families and groups, built for phones.
 - **Surprises stay hidden.** The owner of a list never sees claims or comments on it.
   - If someone in your groups claims something, you see their name. If someone outside your groups claims it, you see "Held by someone outside your groups", so nobody buys it twice.
   - You only see comments from people who share a group with you.
-- **Home page.** It has a **Me** section (your lists, and the gifts you're getting) and a **Groups** section (open a group to see its people).
+- **Home page.** It has a **Me** section (your lists, and the gifts you're giving) and a **Groups** section (open a group to see its people).
 
 ## Accounts and admins
 
