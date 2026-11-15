@@ -218,3 +218,11 @@ test('unsafe input', async () => {
   assert.doesNotMatch((await agents.James.get(`/u/${ids.Sam}`)).text, /<script>x<\/script>/);
   await request(app).get('/').expect(302).expect('Location', '/login');
 });
+
+test('link previews: Open Graph tags, with the group name on invite links', async () => {
+  const login = await request(app).get('/login');
+  assert.match(login.text, /<meta property="og:image" content="http:\/\/127\.0\.0\.1:\d+\/og-image\.png">/);
+  const join = await request(app).get(`/join/${smith.token}`);
+  assert.match(join.text, /<meta property="og:title" content="Join Smith on Family Gifts">/);
+  await request(app).get('/og-image.png').expect(200).expect('Content-Type', /png/);
+});

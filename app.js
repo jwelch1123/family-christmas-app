@@ -27,6 +27,12 @@ app.use((req, res, next) => {
   res.locals.me = null;
   res.locals.hostOf = hostOf;
   res.locals.linkify = linkify;
+  // Absolute URLs for link previews (iMessage, WhatsApp, etc. need full URLs).
+  res.locals.baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.locals.og = {
+    title: 'Family Gifts',
+    description: 'Christmas wish lists for the family. Claim gifts without spoiling the surprise.',
+  };
   res.locals.flash = req.session.flash || null;
   req.session.flash = null;
   next();

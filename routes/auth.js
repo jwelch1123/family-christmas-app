@@ -70,6 +70,10 @@ async function renderJoin(req, res, group, extra = {}) {
     lists = (await db.query('SELECT id, title, kind FROM lists WHERE owner_id = $1 ORDER BY created_at, id', [me.id])).rows;
   }
   const { rows: [{ n }] } = await db.query('SELECT COUNT(*)::int AS n FROM memberships WHERE group_id = $1', [group.id]);
+  res.locals.og = {
+    title: `Join ${group.name} on Family Gifts`,
+    description: `You're invited to share Christmas wish lists with ${group.name}. 🎁`,
+  };
   res.status(extra.error ? 400 : 200).render('join', {
     group, memberCount: n, loggedIn, lists, error: null, form: {}, tab: 'new', ...extra,
   });
